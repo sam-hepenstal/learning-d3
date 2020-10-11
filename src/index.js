@@ -1,4 +1,5 @@
-import ch2 from './chapter2';
-ch2();
+import 'babel-polyfill';
+import {UlamSpiral} from './chapter3';
+new UlamSpiral();
 
 

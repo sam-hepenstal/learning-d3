@@ -4,6 +4,53 @@ import { BasicChart } from './basic-chart';
 let d3 = require('d3');
 
 export default function () {
+    let chart = new BasicChart();
+    let svg = chart.chart;
+
+    let rings = 15;
+    let slices = 20;
+
+    let colors = d3.scale.category20b();
+    let angle = d3.scale.linear().domain([0, slices]).range([0, 2 * Math.PI]);
+
+    let arc = d3.svg.arc()
+        .innerRadius((d) => d * 50 / rings)
+        .outerRadius((d) => 50 + d * 50 / rings)
+        .startAngle((d, i, j) => angle(j))
+        .endAngle((d, i, j) => angle(j + 1));
+
+    let shade = {
+        darker: (d, j) => d3.rgb(colors(j)).darker(d / rings),
+        brighter: (d, j) => d3.rgb(colors(j)).brighter(d / rings)
+    };
+
+    [
+        [100, 100, shade.darker],
+        [300, 100, shade.brighter]
+    ].forEach(function (conf) {
+        svg.append('g')
+            .attr('transform', `translate(${conf[0]}, ${conf[1]})`)
+            .selectAll('g')
+            .data(colors.range())
+            .enter()
+            .append('g')
+            .selectAll('path')
+            .data((d) => d3.range(0, rings))
+            .enter()
+            .append('path')
+            .attr('d', arc)
+            .attr('fill', (d, i, j) => conf[2](d, j));
+    });
+}
+
+export function renderDailyShowGuestTable() {
+    let url =
+        'https://cdn.rawgit.com/fivethirtyeight/data/master/daily-show-guests/daily_show_guests.csv';
+
+    let table = new TableBuilder(url);
+}
+
+export function axisDemo() {
     require('./index.css')
     let chart = new BasicChart();
     let svg = chart.chart;
@@ -44,13 +91,6 @@ export default function () {
                 'stroke-width': 0.3
             });
     });
-}
-
-export function renderDailyShowGuestTable() {
-    let url =
-        'https://cdn.rawgit.com/fivethirtyeight/data/master/daily-show-guests/daily_show_guests.csv';
-
-    let table = new TableBuilder(url);
 }
 
 export function funkyD3PathRenders() {

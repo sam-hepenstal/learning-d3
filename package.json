@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/aendrew/learning-d3#readme",
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "body-parser": "^1.14.2",
     "d3": "^3.5.17",
     "earth-topojson": "^1.0.0",
