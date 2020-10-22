@@ -1,5 +1,3 @@
-import 'babel-polyfill';
-import {UlamSpiral} from './chapter3';
-new UlamSpiral();
-
-
+require('./index.css');
+import {Master} from './master';
+new Master();
