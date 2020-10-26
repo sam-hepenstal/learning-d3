@@ -6,12 +6,56 @@ import { BasicChart } from './basic-chart';
 export class Master extends BasicChart {
     constructor() {
         super();
+
+        let sentence = "Canterbury people are well and healthy in their own homes & communities"
+        let innerRingText = ["Fewer people need hospital care",
+            "Living within our means",
+            "People are supported to stay well",
+            "Equity",
+            "People are seen and treated early",
+            "Death with dignity",
+            "No harm or needless death"]
+
+        let outerRingText = ["Decreased acute care rate & " +
+            "increased planned care rate",
+            "Decreased wait times (Community, 1, 2, diagnostic)",
+            "Delayed/avoided burden of disease & long term conditions",
+            "Improved environment supports health and wellbeing",
+            "No wasted resources",
+            "Decreased avoidable mortality",
+            "Decreased adverse events",
+            "Decreased istitutionalisation rates"]
+
         let originX = this.width / 2;
         let originY = this.height / 2;
         let fill = "#cdeab7";
-
         let innerRadius = this.width / 26;
-        let outerRadius = this.width / 4.5;
+        let outerRadius = this.width / 6.5;
+        let mainCircle = this.createCircleData(originX, originY, innerRadius, outerRadius, fill);
+        let outerCircles = this.calculateOuterCircleOrigins(outerRingText, originX, originY, 1.6 * mainCircle.outerRadius + 20, innerRadius * 0.6, outerRadius * 0.6, fill);
+        let circleData = [];
+        circleData = circleData.concat(mainCircle.circleData)
+        outerCircles.forEach((element) => { circleData = circleData.concat(element.circleData) });
+        this.drawCircles(circleData)
+        this.drawText(sentence, mainCircle.originX, mainCircle.originY, mainCircle.innerRadius * 0.9);
+        this.drawRingOfText(innerRingText, mainCircle.originX, mainCircle.originY, mainCircle.firstFillRadius + (0.5 * mainCircle.whiteWidth), mainCircle.whiteWidth / 2);
+        this.drawRingOfText(outerRingText, originX, originY, mainCircle.secondFillRadius + (0.5 * mainCircle.whiteWidth), mainCircle.whiteWidth / 2);
+    }
+    drawCircles(circleData) {
+
+
+        var circles = this.svg.selectAll("circle").data(circleData).enter().append("circle");
+
+        var circleAttributes = circles
+            .attr("cx", (d) => { return d.cx; })
+            .attr("cy", (d) => { return d.cy; })
+            .attr("r", (d) => { return d.r; })
+            .style("fill", (d) => { return d.fill; })
+            .style("stroke", (d) => { return d.stroke; });
+
+
+    }
+    createCircleData(originX, originY, innerRadius, outerRadius, fill) {
         let availableRadii = outerRadius - innerRadius;
         let whiteWidth = availableRadii / 3;
         let fillWidth = whiteWidth / 3;
@@ -62,32 +106,44 @@ export class Master extends BasicChart {
 
         ];
 
-        var circles = this.svg.selectAll("circle").data(circleData).enter().append("circle");
-
-        var circleAttributes = circles
-            .attr("cx", (d) => { return d.cx; })
-            .attr("cy", (d) => { return d.cy; })
-            .attr("r", (d) => { return d.r; })
-            .style("fill", (d) => { return d.fill; })
-            .style("stroke", (d) => { return d.stroke; });
-
-        let sentence = "Canterbury people are well and healthy in their own homes & communities"
-        
-        this.drawText(sentence, originX, originY, innerRadius);
-        let theta = [1, 2, 3, 4, 5, 6, 7].map(x =>  this.radians((360 / 7) * x))
-        console.log(theta)
-        theta.forEach(element => {
-            let circleAOriginX = originX + ((firstFillRadius + (0.5 * whiteWidth)) * Math.sin(element));
-            let circleAOriginY = originY - ((firstFillRadius + (0.5 * whiteWidth)) * Math.cos(element));
-
-            let sentence2 = "Fewer people need hospital care";
-            this.drawText(sentence2, circleAOriginX, circleAOriginY, whiteWidth / 2.5);
-        });
-        
-        //var circleA = this.svg.append("circle").attr({cx : circleAOriginX, cy: circleAOriginY, r: whiteWidth / 2})
+        return {
+            circleData: circleData,
+            originX: originX,
+            originY: originY,
+            innerRadius: innerRadius,
+            firstFillRadius: firstFillRadius,
+            secondWhiteRadius: secondWhiteRadius,
+            secondFillRadius: secondFillRadius,
+            outerRadius: outerRadius,
+            whiteWidth: whiteWidth,
+            fillWidth: fillWidth
+        }
     }
+
     radians(degrees) {
         return degrees * Math.PI / 180;
+    }
+
+    calculateOuterCircleOrigins(texts, originX, originY, radiusFromCenter, innerRadius, outerRadius, fill) {
+        let theta = Array.from(texts.keys()).map(x => this.radians((360 / texts.length * x)))
+        let circleData = [];
+        theta.forEach((element, i) => {
+            let x = originX + (radiusFromCenter * Math.sin(element));
+            let y = originY - (radiusFromCenter * Math.cos(element));
+
+            circleData.push(this.createCircleData(x, y, innerRadius, outerRadius, fill))
+        });
+        return circleData;
+    }
+
+    drawRingOfText(texts, originX, originY, radiusFromCenter, radiusOfText) {
+        let theta = Array.from(texts.keys()).map(x => this.radians((360 / texts.length * x)))
+        theta.forEach((element, i) => {
+            let textX = originX + (radiusFromCenter * Math.sin(element));
+            let textY = originY - (radiusFromCenter * Math.cos(element));
+
+            this.drawText(texts[i], textX, textY, radiusOfText * 0.9);
+        });
     }
 
     drawText(text, originX, originY, radius) {
@@ -96,9 +152,6 @@ export class Master extends BasicChart {
         let width = Math.sqrt(this.measureWidth(text.trim()) * lineHeight)
         let lines = this.lines(words, width)
         let textRadius = this.textRadius(lines, lineHeight)
-        console.log(textRadius)
-
-        //var s = this.svg.append("text").attr({ x: this.width / 2, y: this.height / 2, fill: "black", fontsize: "20px" }).text();
 
         this.svg.append("text")
             .attr("transform", `translate(${originX},${originY}) scale(${radius / textRadius})`)
