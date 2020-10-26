@@ -6,44 +6,56 @@ import { BasicChart } from './basic-chart';
 export class Master extends BasicChart {
     constructor() {
         super();
-
+        let originX = this.width / 2;
+        let originY = this.height / 2;
         let fill = "#cdeab7";
+
+        let innerRadius = this.width / 26;
+        let outerRadius = this.width / 4.5;
+        let availableRadii = outerRadius - innerRadius;
+        let whiteWidth = availableRadii / 3;
+        let fillWidth = whiteWidth / 3;
+        let firstFillRadius = innerRadius + fillWidth;
+        let secondWhiteRadius = firstFillRadius + whiteWidth;
+        let secondFillRadius = secondWhiteRadius + fillWidth;
+        let thirdWhiteRadius = secondFillRadius + whiteWidth;
 
         let circleData = [
             {
-                cx: this.width / 2,
-                cy: this.height / 2,
-                r: this.width / 4.5,
+                cx: originX,
+                cy: originY,
+                r: outerRadius,
                 fill: fill,
                 stroke: fill
             }, {
-                cx: this.width / 2,
-                cy: this.height / 2,
-                r: this.width / 5,
+                cx: originX,
+                cy: originY,
+                r: thirdWhiteRadius,
                 fill: "white",
                 stroke: fill
             }, {
-                cx: this.width / 2,
-                cy: this.height / 2,
-                r: this.width / 8,
+                cx: originX,
+                cy: originY,
+                r: secondFillRadius,
                 fill: fill,
                 stroke: fill
             }, {
-                cx: this.width / 2,
-                cy: this.height / 2,
-                r: this.width / 10,
+                cx: originX,
+                cy: originY,
+                r: secondWhiteRadius,
                 fill: "white",
                 stroke: fill
-            }, {
-                cx: this.width / 2,
-                cy: this.height / 2,
-                r: this.width / 20,
+            },
+            {
+                cx: originX,
+                cy: originY,
+                r: firstFillRadius,
                 fill: fill,
                 stroke: fill
             }, {
-                cx: this.width / 2,
-                cy: this.height / 2,
-                r: this.width / 28,
+                cx: originX,
+                cy: originY,
+                r: innerRadius,
                 fill: "white",
                 stroke: fill
             }
@@ -60,9 +72,28 @@ export class Master extends BasicChart {
             .style("stroke", (d) => { return d.stroke; });
 
         let sentence = "Canterbury people are well and healthy in their own homes & communities"
-        let words = this.words(sentence);
+        
+        this.drawText(sentence, originX, originY, innerRadius);
+        let theta = [1, 2, 3, 4, 5, 6, 7].map(x =>  this.radians((360 / 7) * x))
+        console.log(theta)
+        theta.forEach(element => {
+            let circleAOriginX = originX + ((firstFillRadius + (0.5 * whiteWidth)) * Math.sin(element));
+            let circleAOriginY = originY - ((firstFillRadius + (0.5 * whiteWidth)) * Math.cos(element));
+
+            let sentence2 = "Fewer people need hospital care";
+            this.drawText(sentence2, circleAOriginX, circleAOriginY, whiteWidth / 2.5);
+        });
+        
+        //var circleA = this.svg.append("circle").attr({cx : circleAOriginX, cy: circleAOriginY, r: whiteWidth / 2})
+    }
+    radians(degrees) {
+        return degrees * Math.PI / 180;
+    }
+
+    drawText(text, originX, originY, radius) {
+        let words = this.words(text);
         let lineHeight = 12;
-        let width = Math.sqrt(this.measureWidth(sentence.trim()) * lineHeight)
+        let width = Math.sqrt(this.measureWidth(text.trim()) * lineHeight)
         let lines = this.lines(words, width)
         let textRadius = this.textRadius(lines, lineHeight)
         console.log(textRadius)
@@ -70,7 +101,7 @@ export class Master extends BasicChart {
         //var s = this.svg.append("text").attr({ x: this.width / 2, y: this.height / 2, fill: "black", fontsize: "20px" }).text();
 
         this.svg.append("text")
-            .attr("transform", `translate(${this.width / 2},${this.height / 2}) scale(${this.width / 28 / textRadius})`)
+            .attr("transform", `translate(${originX},${originY}) scale(${radius / textRadius})`)
             .selectAll("tspan")
             .data(lines)
             .enter().append("tspan")
